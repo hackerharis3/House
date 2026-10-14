@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buhari Residence - 3D & 360° Model (With Blue Circle & Text Toggle)</title>
+  <style>
+    :root {
+      --bg-panel: rgba(15, 20, 28, 0.93);
+      --accent: #d4af37;
+      --accent-blue: #38bdf8;
+      --accent-emerald: #10b981;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border: rgba(255, 255, 255, 0.15);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: var(--text-main);
+    }
+    #canvas-container { width: 100vw; height: 100vh; display: block; cursor: grab; }
+    #canvas-container:active { cursor: grabbing; }
+
+    /* Left Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      width: 345px;
+      max-height: calc(100vh - 28px);
+      overflow-y: auto;
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+      z-index: 10;
+    }
+    .sidebar::-webkit-scrollbar { width: 5px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+    .sidebar h1 { font-size: 15.5px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+    .sidebar .subtitle {
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text-muted);
+      margin: 11px 0 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--accent-blue);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+    }
+    .badge-gold {
+      background: rgba(212, 175, 55, 0.25);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+    }
+    .badge-green {
+      background: rgba(16, 185, 129, 0.22);
+      color: #34d399;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+    }
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+    button.ctrl-btn {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 7px 8px;
+      border-radius: 6px;
+      font-size: 11.1px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    button.ctrl-btn:hover {
+      background: rgba(212, 175, 55, 0.22);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    button.ctrl-btn.active {
+      background: var(--accent);
+      color: #111;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+    button.ctrl-btn.pano-btn {
+      background: rgba(56, 189, 248, 0.09);
+      border-color: rgba(56, 189, 248, 0.28);
+    }
+    button.ctrl-btn.pano-btn:hover,
+    button.ctrl-btn.pano-btn.active {
+      background: var(--accent-blue);
+      color: #0f172a;
+      border-color: var(--accent-blue);
+      font-weight: 700;
+    }
+    button.ctrl-btn.stair-btn {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: rgba(212, 175, 55, 0.45);
+      color: #fde68a;
+    }
+    button.ctrl-btn.stair-btn:hover,
+    button.ctrl-btn.stair-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+    button.ctrl-btn.lift-btn {
+      background: rgba(16, 185, 129, 0.14);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #a7f3d0;
+    }
+    button.ctrl-btn.lift-btn:hover,
+    button.ctrl-btn.lift-btn.active {
+      background: var(--accent-emerald);
+      color: #0f172a;
+      border-color: var(--accent-emerald);
+      font-weight: 700;
+    }
+    button.ctrl-btn.full-span {
+      grid-column: span 2;
+      padding: 8px;
+      font-weight: 700;
+    }
+
+    .toggle-list { display: flex; flex-direction: column; gap: 5px; }
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.04);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .toggle-item:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: var(--border);
+    }
+    .toggle-item.highlight-blue {
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      color: #e0f2fe;
+      font-weight: 600;
+    }
+    .toggle-item.highlight-green {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #d1fae5;
+      font-weight: 600;
+    }
+    .toggle-item input { accent-color: var(--accent-blue); width: 15px; height: 15px; cursor: pointer; }
+
+    /* Top Status & Live Room Dimension Readout */
+    .top-bar {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 8px 18px;
+      font-size: 12px;
+      color: var(--text-muted);
+      z-index: 10;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+    }
+    .room-badge {
+      color: var(--accent-blue);
+      font-weight: 700;
+      padding-right: 12px;
+      border-right: 1px solid var(--border);
+    }
+    .dim-badge {
+      color: #34d399;
+      font-weight: 700;
+      padding-right: 12px;
+      border-right: 1px solid var(--border);
+    }
+    .compass-badge {
+      color: var(--accent);
+      font-weight: 700;
+      min-width: 85px;
+    }
+
+    /* Bottom Floating 360 Dock */
+    .pano-dock {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      z-index: 10;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.55);
+    }
+    .dock-btn {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 7px 13px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .dock-btn:hover { background: rgba(56, 189, 248, 0.25); border-color: var(--accent-blue); }
+    .dock-btn.active { background: var(--accent); color: #111; border-color: var(--accent); }
+
+    /* Interactive 360 Hotspot Pin Labels */
+    .hotspot-pin {
+      pointer-events: auto;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid #38bdf8;
+      color: #fff;
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      transition: transform 0.15s, background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .hotspot-pin::before {
+      content: '◉';
+      color: #38bdf8;
+      font-size: 12px;
+    }
+    .hotspot-pin:hover {
+      background: #38bdf8;
+      color: #0f172a;
+      transform: scale(1.1);
+    }
+    .hotspot-pin:hover::before { color: #0f172a; }
+
+    /* Floor Blueprint Dimension Tape Label */
+    .dim-tape-label {
+      background: rgba(16, 185, 129, 0.24);
+      border: 1px solid rgba(16, 185, 129, 0.85);
+      color: #a7f3d0;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+
+    #error-banner {
+      display: none;
+      position: fixed;
+      top: 70px;
+      right: 16px;
+      background: #dc2626;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      z-index: 9999;
+      font-size: 12px;
+      max-width: 450px;
+    }
+  </style>
+</head>
+<body>
+  <div id="error-banner"></div>
+  <div id="canvas-container"></div>
+
+  <!-- Top Status, Exact Blueprint Room Size & 360 Compass -->
+  <div class="top-bar">
+    <span class="room-badge" id="active-room-title">Ground Floor 3D Dollhouse Cutaway</span>
+    <span class="dim-badge" id="active-room-dims">Shared 4'×11' Toilet + Detailed Island Kitchen + Unobstructed Powder Room &amp; Stairs</span>
+    <span class="compass-badge" id="compass-readout">Heading: 0° (N)</span>
+    <span><strong>Drag:</strong> Look/Orbit &nbsp;|&nbsp; <strong>W A S D:</strong> Walk Inside &nbsp;|&nbsp; <strong>Scroll:</strong> Zoom</span>
+  </div>
+
+  <!-- Bottom Floating 360 Control Bar -->
+  <div class="pano-dock">
+    <button class="dock-btn" id="btn-prev-room">◀ Prev Room</button>
+    <button class="dock-btn" id="btn-next-room">Next Room ▶</button>
+    <button class="dock-btn" id="btn-toggle-circles-dock" style="border-color:#38bdf8;color:#7dd3fc;">🔵 Hide Blue Circles &amp; Text</button>
+    <button class="dock-btn" id="btn-step-balcony" style="border-color:#d4af37;color:#fde68a;">🚪 Step Out/In Balcony</button>
+    <button class="dock-btn" id="btn-ride-dock" style="border-color:#10b981;color:#6ee7b7;">⇅ Ride Lift (GF ⇄ FF)</button>
+    <button class="dock-btn" id="btn-autorotate">↻ Auto-Spin</button>
+  </div>
+
+  <!-- Left Control Panel -->
+  <div class="sidebar">
+    <h1>BUHARI RESIDENCE</h1>
+    <div class="subtitle">Complete 3D &amp; 360° Model</div>
+
+    <!-- TOP QUICK TICK / UNTICK FOR BLUE CIRCLES & TEXT -->
+    <div class="section-title">
+      <span>Show / Hide Markers on House</span>
+      <span class="badge">TICK / UNTICK</span>
+    </div>
+    <div class="toggle-list">
+      <label class="toggle-item highlight-blue">
+        <span>🔵 Blue Circles &amp; Text on House</span>
+        <input type="checkbox" id="chk-hotspots" checked />
+      </label>
+      <label class="toggle-item highlight-green">
+        <span>📏 Green Blueprint Dimension Tapes</span>
+        <input type="checkbox" id="chk-dims" checked />
+      </label>
+    </div>
+
+    <div class="section-title">
+      <span>3D Cutaway &amp; Exterior Orbit Views</span>
+      <span class="badge-green">3D ORBIT</span>
+    </div>
+    <div class="btn-grid">
+      <button class="ctrl-btn lift-btn active" data-ext="dollhouse_gf">GF 3D Dollhouse Cut</button>
+      <button class="ctrl-btn lift-btn" data-ext="dollhouse_ff">FF 3D Dollhouse Cut</button>
+      <button class="ctrl-btn lift-btn" data-ext="shared_toilet_cut">Shared 4'×11' Toilet Cut</button>
+      <button class="ctrl-btn lift-btn" data-ext="kitchen_cut">Kitchen &amp; Island Cut</button>
+      <button class="ctrl-btn lift-btn" data-ext="gf_plan_top">GF Top-Down Plan</button>
+      <button class="ctrl-btn lift-btn" data-ext="ff_plan_top">FF Top-Down Plan</button>
+      <button class="ctrl-btn full-span" data-ext="front">🏛️ View Full Exterior East Facade (Both Blocks + Roofs)</button>
+    </div>
+
+    <div class="section-title">
+      <span>Shared Toilet (4'×11') &amp; Kitchen (360°)</span>
+      <span class="badge-gold">360° INSIDE</span>
+    </div>
+    <div class="btn-grid">
+      <button class="ctrl-btn stair-btn" data-station="0">1. Shared Toilet Vestibule</button>
+      <button class="ctrl-btn stair-btn" data-station="1">2. Inside 4'×11' Toilet</button>
+      <button class="ctrl-btn stair-btn" data-station="2">3. Guest Bed (8'×14')</button>
+      <button class="ctrl-btn stair-btn" data-station="3">4. Middle Bed (10'×14')</button>
+      <button class="ctrl-btn stair-btn" data-station="4">5. Hallway to Kitchen</button>
+      <button class="ctrl-btn stair-btn" data-station="5">6. Island Dining (12'×12')</button>
+      <button class="ctrl-btn stair-btn" data-station="6">7. Kitchen Hob &amp; Sink</button>
+      <button class="ctrl-btn stair-btn" data-station="7">8. Powder Door &amp; Stairs</button>
+    </div>
+
+    <div class="section-title">
+      <span>Other Ground Floor Rooms (360°)</span>
+      <span class="badge">1,896 SFT</span>
+    </div>
+    <div class="btn-grid">
+      <button class="ctrl-btn pano-btn" data-station="8">9. Inside Powder (8'×4'6")</button>
+      <button class="ctrl-btn pano-btn" data-station="9">10. Formal Living (20'9"×23'7")</button>
+      <button class="ctrl-btn pano-btn" data-station="10">11. East Sitout (5'×12')</button>
+      <button class="ctrl-btn pano-btn" data-station="11">12. GF Master Bed (15'×14')</button>
+    </div>
+
+    <div class="section-title">
+      <span>First Floor 360° Stations (f.fplan.pdf)</span>
+      <span class="badge">1,600 SFT</span>
+    </div>
+    <div class="btn-grid">
+      <button class="ctrl-btn stair-btn" data-station="12">13. Stair Mid-Landing (+6')</button>
+      <button class="ctrl-btn pano-btn" data-station="13">14. Lounge (8'3"×13'3")</button>
+      <button class="ctrl-btn pano-btn" data-station="14">15. Connecting Bridge (FF)</button>
+      <button class="ctrl-btn pano-btn" data-station="15">16. Lift &amp; D3 Balcony Door</button>
+      <button class="ctrl-btn pano-btn" data-station="16">17. East Balcony (5'×22')</button>
+      <button class="ctrl-btn pano-btn" data-station="17">18. East Bed (12'4½"×14')</button>
+      <button class="ctrl-btn pano-btn" data-station="18">19. East Bed Toilet (10'×7')</button>
+      <button class="ctrl-btn pano-btn" data-station="19">20. Store Room (10'×7')</button>
+      <button class="ctrl-btn pano-btn" data-station="20">21. FF Master Bed (15'×14')</button>
+      <button class="ctrl-btn pano-btn" data-station="21">22. Green Terrace Garden</button>
+      <button class="ctrl-btn lift-btn full-span" data-station="22">23. Inside 4'-6" Panoramic Glass Lift Cabin</button>
+    </div>
+
+    <div class="section-title">Building Layers Visibility</div>
+    <div class="toggle-list">
+      <label class="toggle-item">
+        <span>Interior Furniture &amp; Kitchen</span>
+        <input type="checkbox" id="chk-furniture" checked />
+      </label>
+      <label class="toggle-item">
+        <span>Hipped Roofs &amp; Ceilings</span>
+        <input type="checkbox" id="chk-roof" />
+      </label>
+      <label class="toggle-item">
+        <span>First Floor (+12' to +24')</span>
+        <input type="checkbox" id="chk-ff" />
+      </label>
+    </div>
+
+    <div class="section-title">Lighting Mode</div>
+    <div class="btn-grid">
+      <button class="ctrl-btn active" id="btn-day">Daylight Render</button>
+      <button class="ctrl-btn" id="btn-night">Warm Evening LEDs</button>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('error', (e) => {
+      const b = document.getElementById('error-banner');
+      if (b) {
+        b.style.display = 'block';
+        b.textContent = 'Script Error: ' + e.message + ' (Line ' + e.lineno + ')';
+      }
+    });
+  </script>
+
+  <!-- Three.js + OrbitControls + CSS2DRenderer -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // --- 1. SCENE, CAMERA & RENDERERS ---
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xdbeafe);
+    scene.fog = new THREE.FogExp2(0xdbeafe, 0.0005);
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.2, 1000);
+    camera.position.set(28, 58, 48);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+    container.appendChild(renderer.domElement);
+
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'fixed';
+    labelRenderer.domElement.style.top = '0px';
+    labelRenderer.domElement.style.left = '0px';
+    labelRenderer.domElement.style.pointerEvents = 'none';
+    document.body.appendChild(labelRenderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.target.set(0, 2, 24);
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.9;
+
+    // --- 2. LIGHTING ---
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x94a3b8, 1.2);
+    hemiLight.position.set(0, 120, 0);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.55);
+    dirLight.position.set(95, 115, 55);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.camera.left = -85;
+    dirLight.shadow.camera.right = 85;
+    dirLight.shadow.camera.top = 85;
+    dirLight.shadow.camera.bottom = -85;
+    dirLight.shadow.camera.near = 10;
+    dirLight.shadow.camera.far = 260;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    const warmLightsGroup = new THREE.Group();
+    const interiorLightsGroup = new THREE.Group();
+    scene.add(warmLightsGroup);
+    scene.add(interiorLightsGroup);
+
+    // --- 3. PROCEDURAL TEXTURES ---
+    function createPaverTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#3f6212';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.fillStyle = '#9ca3af';
+      for (let r = 0; r < 8; r++) {
+        const offset = (r % 2) * 16;
+        for (let col = -1; col < 8; col++) {
+          ctx.fillRect(col * 36 + offset + 3, r * 32 + 3, 30, 25);
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(3, 8);
+      return tex;
+    }
+
+    function createTrueScaleMarbleTileTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 256; i += 32) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke();
+      }
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i <= 256; i += 64) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(6, 6);
+      return tex;
+    }
+
+    function createWoodPlankTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#b07d52';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = '#8c5e37';
+      ctx.lineWidth = 2;
+      for (let i = 0; i <= 256; i += 32) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i); ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(7, 7);
+      return tex;
+    }
+
+    function createBalconyDeckTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#9c6644';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = '#582f0e';
+      ctx.lineWidth = 3;
+      for (let i = 0; i <= 256; i += 32) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 256); ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(2, 10);
+      return tex;
+    }
+
+    function createSubwayBacksplashTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 128;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f1f5f9';
+      ctx.fillRect(0, 0, 256, 128);
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 2;
+      for (let r = 0; r < 8; r++) {
+        const y = r * 16;
+        const off = (r % 2) * 16;
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke();
+        for (let col = 0; col <= 8; col++) {
+          ctx.beginPath(); ctx.moveTo(col * 32 + off, y); ctx.lineTo(col * 32 + off, y + 16); ctx.stroke();
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(6, 2);
+      return tex;
+    }
+
+    const MAT = {
+      stucco: new THREE.MeshStandardMaterial({ color: 0xefe6d5, roughness: 0.7, side: THREE.DoubleSide }),
+      stuccoTrim: new THREE.MeshStandardMaterial({ color: 0xf7f2e7, roughness: 0.6 }),
+      interiorWall: new THREE.MeshStandardMaterial({ color: 0xfcfbf7, roughness: 0.75, side: THREE.DoubleSide }),
+      backsplash: new THREE.MeshStandardMaterial({ map: createSubwayBacksplashTexture(), roughness: 0.25 }),
+      slab: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75, side: THREE.DoubleSide }),
+      floorTile: new THREE.MeshStandardMaterial({ map: createTrueScaleMarbleTileTexture(), roughness: 0.22, metalness: 0.05 }),
+      woodFloor: new THREE.MeshStandardMaterial({ map: createWoodPlankTexture(), roughness: 0.4 }),
+      balconyDeck: new THREE.MeshStandardMaterial({ map: createBalconyDeckTexture(), roughness: 0.45 }),
+      stairTread: new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.35 }),
+      stairRiser: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 }),
+      waistSlab: new THREE.MeshStandardMaterial({ color: 0xe5e5e5, roughness: 0.7, side: THREE.DoubleSide }),
+      woodDark: new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.42 }),
+      woodWalnut: new THREE.MeshStandardMaterial({ color: 0x7c4a27, roughness: 0.38 }),
+      sofaFabric: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.85 }),
+      cushionCream: new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.8 }),
+      bedSheet: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.75 }),
+      bedBlanket: new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.8 }),
+      rug: new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.95 }),
+      marbleCounter: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.16, metalness: 0.12 }),
+      whiteQuartz: new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.18, metalness: 0.08 }),
+      cabinetSage: new THREE.MeshStandardMaterial({ color: 0xd6d3c9, roughness: 0.42 }),
+      stainlessSteel: new THREE.MeshStandardMaterial({ color: 0xd4d4d8, roughness: 0.22, metalness: 0.88 }),
+      sinkBasin: new THREE.MeshStandardMaterial({ color: 0x71717a, roughness: 0.25, metalness: 0.85 }),
+      burnerFlame: new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
+      goldBrass: new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.22, metalness: 0.88 }),
+      darkSteel: new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.3, metalness: 0.8 }),
+      crystalGlow: new THREE.MeshBasicMaterial({ color: 0xfffbeb }),
+      ledGreen: new THREE.MeshBasicMaterial({ color: 0x10b981 }),
+      ledBlue: new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
+      tvScreen: new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.1, metalness: 0.5 }),
+      terraceGrass: new THREE.MeshStandardMaterial({ color: 0x2d6a4f, roughness: 0.9 }),
+      darkFrame: new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.35, metalness: 0.5 }),
+      spandrel: new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.25, metalness: 0.4 }),
+      glass: new THREE.MeshPhysicalMaterial({
+        color: 0x93c5fd, transparent: true, opacity: 0.28, roughness: 0.1, metalness: 0.1, side: THREE.DoubleSide
+      }),
+      liftGlass: new THREE.MeshPhysicalMaterial({
+        color: 0xe0f2fe, transparent: true, opacity: 0.26, roughness: 0.05, metalness: 0.15, side: THREE.DoubleSide
+      }),
+      curtain: new THREE.MeshStandardMaterial({ color: 0xf5f0e6, roughness: 0.9, side: THREE.DoubleSide }),
+      roof: new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.65, metalness: 0.2 }),
+      graniteStep: new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.5 }),
+      concrete: new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.85 }),
+      lawn: new THREE.MeshStandardMaterial({ color: 0x3f6212, roughness: 0.95 }),
+      paver: new THREE.MeshStandardMaterial({ map: createPaverTexture(), roughness: 0.8 }),
+      road: new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.9 }),
+      shrub: new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.85 }),
+      pot: new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.6 }),
+      spotlight: new THREE.MeshBasicMaterial({ color: 0xfef08a }),
+      hotspotRing: new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.85 }),
+      hotspotCenter: new THREE.MeshBasicMaterial({ color: 0xd4af37, side: THREE.DoubleSide }),
+      dimLine: new THREE.LineBasicMaterial({ color: 0x10b981 })
+    };
+
+    // --- 4. LAYER GROUPS & CSS2D LABEL TRACKERS ---
+    const groups = {
+      roof: new THREE.Group(),
+      ff: new THREE.Group(),
+      gf: new THREE.Group(),
+      interior: new THREE.Group(),
+      furniture: new THREE.Group(),
+      site: new THREE.Group(),
+      hotspots: new THREE.Group(),
+      dims: new THREE.Group()
+    };
+    Object.values(groups).forEach(g => scene.add(g));
+
+    // Track CSS2DObject instances so unchecking hides both the 3D circle AND the floating HTML text!
+    const hotspotLabelObjects = [];
+    const dimLabelObjects = [];
+
+    function box(w, h, d, mat, x, y, z, parent) {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(x, y, z);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      if (parent && typeof parent.add === 'function') {
+        parent.add(m);
+      } else {
+        groups.interior.add(m);
+      }
+      return m;
+    }
+
+    function addFloorDimensionTape(x1, x2, y, z1, z2, labelText) {
+      const pts = [
+        new THREE.Vector3(x1, y, z1),
+        new THREE.Vector3(x2, y, z1),
+        new THREE.Vector3(x2, y, z2),
+        new THREE.Vector3(x1, y, z2),
+        new THREE.Vector3(x1, y, z1)
+      ];
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      const line = new THREE.Line(geo, MAT.dimLine);
+      groups.dims.add(line);
+
+      const div = document.createElement('div');
+      div.className = 'dim-tape-label';
+      div.textContent = labelText;
+      const lbl = new CSS2DObject(div);
+      lbl.position.set((x1 + x2) / 2, y + 0.15, (z1 + z2) / 2);
+      groups.dims.add(lbl);
+      dimLabelObjects.push({ obj: lbl, el: div });
+    }
+
+    function wallWithDoor(x1, x2, yBottom, yTop, z1, z2, doorPosRatio, doorWidth, mat, parent) {
+      const isAlongX = Math.abs(x2 - x1) >= Math.abs(z2 - z1);
+      const wallH = yTop - yBottom;
+      const doorH = Math.min(7.2, wallH - 1.0);
+
+      if (isAlongX) {
+        const totalL = Math.abs(x2 - x1);
+        const minX = Math.min(x1, x2);
+        const cz = (z1 + z2) / 2;
+        const thick = Math.abs(z2 - z1);
+        const doorCenter = minX + totalL * doorPosRatio;
+        const dLeft = doorCenter - doorWidth / 2;
+        const dRight = doorCenter + doorWidth / 2;
+
+        if (dLeft > minX) box(dLeft - minX, wallH, thick, mat, (minX + dLeft) / 2, yBottom + wallH / 2, cz, parent);
+        if (minX + totalL > dRight) box(minX + totalL - dRight, wallH, thick, mat, (dRight + minX + totalL) / 2, yBottom + wallH / 2, cz, parent);
+        box(doorWidth, wallH - doorH, thick, mat, doorCenter, yBottom + doorH + (wallH - doorH) / 2, cz, parent);
+        box(0.14, doorH, doorWidth * 0.85, MAT.woodDark, dLeft + 0.15, yBottom + doorH / 2, cz + (cz > 0 ? 1 : -1) * doorWidth * 0.42, parent);
+      } else {
+        const totalL = Math.abs(z2 - z1);
+        const minZ = Math.min(z1, z2);
+        const cx = (x1 + x2) / 2;
+        const thick = Math.abs(x2 - x1);
+        const doorCenter = minZ + totalL * doorPosRatio;
+        const dLeft = doorCenter - doorWidth / 2;
+        const dRight = doorCenter + doorWidth / 2;
+
+        if (dLeft > minZ) box(thick, wallH, dLeft - minZ, mat, cx, yBottom + wallH / 2, (minZ + dLeft) / 2, parent);
+        if (minZ + totalL > dRight) box(thick, wallH, minZ + totalL - dRight, mat, cx, yBottom + wallH / 2, (dRight + minZ + totalL) / 2, parent);
+        box(thick, wallH - doorH, doorWidth, mat, cx, yBottom + doorH + (wallH - doorH) / 2, doorCenter, parent);
+        box(doorWidth * 0.82, doorH, 0.14, MAT.woodDark, cx + doorWidth * 0.4, yBottom + doorH / 2, dLeft + 0.15, parent);
+      }
+    }
+
+    function createGridWindow(x, y, z, w, h, rotY, parent) {
+      const wg = new THREE.Group();
+      wg.position.set(x, y, z);
+      wg.rotation.y = rotY;
+      box(0.35, h, w, MAT.glass, 0, 0, 0, wg);
+      box(0.48, 0.2, w + 0.2, MAT.darkFrame, 0, h / 2, 0, wg);
+      box(0.48, 0.2, w + 0.2, MAT.darkFrame, 0, -h / 2, 0, wg);
+      box(0.48, h, 0.2, MAT.darkFrame, 0, 0, -w / 2, wg);
+      box(0.48, h, 0.2, MAT.darkFrame, 0, 0, w / 2, wg);
+      box(0.42, h, 0.12, MAT.darkFrame, 0, 0, -w / 6, wg);
+      box(0.42, h, 0.12, MAT.darkFrame, 0, 0, w / 6, wg);
+      box(0.42, h, 0.12, w, MAT.darkFrame, 0, 0, 0, wg);
+      parent.add(wg);
+    }
+
+    function wallWithWindow(x1, x2, yBottom, yTop, z1, z2, winPosRatio, winWidth, sillH, winH, mat, parent) {
+      const isAlongX = Math.abs(x2 - x1) >= Math.abs(z2 - z1);
+      const wallH = yTop - yBottom;
+
+      if (isAlongX) {
+        const totalL = Math.abs(x2 - x1);
+        const minX = Math.min(x1, x2);
+        const cz = (z1 + z2) / 2;
+        const thick = Math.abs(z2 - z1);
+        const wCenter = minX + totalL * winPosRatio;
+        const wLeft = wCenter - winWidth / 2;
+        const wRight = wCenter + winWidth / 2;
+
+        if (wLeft > minX) box(wLeft - minX, wallH, thick, mat, (minX + wLeft) / 2, yBottom + wallH / 2, cz, parent);
+        if (minX + totalL > wRight) box(minX + totalL - wRight, wallH, thick, mat, (wRight + minX + totalL) / 2, yBottom + wallH / 2, cz, parent);
+        if (sillH > 0) box(winWidth, sillH, thick, mat, wCenter, yBottom + sillH / 2, cz, parent);
+        const lintelH = wallH - (sillH + winH);
+        if (lintelH > 0) box(winWidth, lintelH, thick, mat, wCenter, yTop - lintelH / 2, cz, parent);
+        createGridWindow(wCenter, yBottom + sillH + winH / 2, cz, winWidth, winH, Math.PI / 2, parent);
+      } else {
+        const totalL = Math.abs(z2 - z1);
+        const minZ = Math.min(z1, z2);
+        const cx = (x1 + x2) / 2;
+        const thick = Math.abs(x2 - x1);
+        const wCenter = minZ + totalL * winPosRatio;
+        const wLeft = wCenter - winWidth / 2;
+        const wRight = wCenter + winWidth / 2;
+
+        if (wLeft > minZ) box(thick, wallH, wLeft - minZ, mat, cx, yBottom + wallH / 2, (minZ + wLeft) / 2, parent);
+        if (minZ + totalL > wRight) box(thick, wallH, minZ + totalL - wRight, mat, cx, yBottom + wallH / 2, (wRight + minZ + totalL) / 2, parent);
+        if (sillH > 0) box(thick, sillH, winWidth, mat, cx, yBottom + sillH / 2, wCenter, parent);
+        const lintelH = wallH - (sillH + winH);
+        if (lintelH > 0) box(thick, lintelH, winWidth, mat, cx, yTop - lintelH / 2, wCenter, parent);
+        createGridWindow(cx, yBottom + sillH + winH / 2, wCenter, winWidth, winH, 0, parent);
+      }
+    }
+
+    // --- 5. DETAILED 4'-6" CIRCULAR PANORAMIC GLASS LIFT ---
+    const liftControllers = [];
+
+    function buildDetailedCircularLift(Z, dir) {
+      const liftX = 16.3;
+      const liftZ = Z(22.15);
+      const radius = 2.2;
+
+      const hoistwayGroup = new THREE.Group();
+      hoistwayGroup.position.set(liftX, 0, liftZ);
+
+      const pitCyl = new THREE.Mesh(new THREE.CylinderGeometry(radius + 0.12, radius + 0.12, 1.2, 32), MAT.darkSteel);
+      pitCyl.position.set(0, -0.6, 0);
+      hoistwayGroup.add(pitCyl);
+
+      const postAngles = [Math.PI * 0.22, Math.PI * 0.78, Math.PI * 1.22, Math.PI * 1.78];
+      postAngles.forEach(ang => {
+        const px = Math.cos(ang) * radius;
+        const pz = Math.sin(ang) * radius;
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 23.6, 12), MAT.goldBrass);
+        post.position.set(px, 11.8, pz);
+        hoistwayGroup.add(post);
+      });
+
+      [-0.45, 0.45].forEach(rz => {
+        box(0.14, 23.4, 0.14, MAT.darkSteel, radius - 0.18, 11.7, rz, hoistwayGroup);
+      });
+      const counterweight = box(0.26, 3.2, 1.0, MAT.darkSteel, radius - 0.28, 16.0, 0, hoistwayGroup);
+      hoistwayGroup.add(counterweight);
+
+      [0.1, 6.0, 11.8, 12.2, 18.0, 23.4].forEach(ry => {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.08, 12, 36), MAT.goldBrass);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(0, ry, 0);
+        hoistwayGroup.add(ring);
+      });
+
+      const motorCap = new THREE.Mesh(new THREE.CylinderGeometry(radius + 0.08, radius + 0.08, 0.6, 32), MAT.darkSteel);
+      motorCap.position.set(0, 23.4, 0);
+      hoistwayGroup.add(motorCap);
+
+      const shaftGlassGeo = new THREE.CylinderGeometry(radius - 0.02, radius - 0.02, 23.4, 32, 1, true, -Math.PI * 0.76, Math.PI * 1.52);
+      const shaftGlass = new THREE.Mesh(shaftGlassGeo, MAT.liftGlass);
+      shaftGlass.position.set(0, 11.7, 0);
+      hoistwayGroup.add(shaftGlass);
+
+      [0, 12.0].forEach(floorY => {
+        const header = new THREE.Mesh(
+          new THREE.CylinderGeometry(radius + 0.05, radius + 0.05, 0.42, 24, 1, true, Math.PI * 0.78, Math.PI * 0.44),
+          MAT.goldBrass
+        );
+        header.position.set(0, floorY + 7.4, 0);
+        hoistwayGroup.add(header);
+        box(0.12, 0.2, 0.55, MAT.ledGreen, -radius - 0.05, floorY + 7.4, 0, hoistwayGroup);
+      });
+
+      const cabinGroup = new THREE.Group();
+      const cabR = radius - 0.16;
+      const cabH = 7.4;
+
+      const cabFloor = new THREE.Mesh(new THREE.CylinderGeometry(cabR, cabR, 0.24, 32), MAT.darkSteel);
+      cabFloor.position.set(0, 0.12, 0);
+      cabinGroup.add(cabFloor);
+      const cabTile = new THREE.Mesh(new THREE.CylinderGeometry(cabR - 0.08, cabR - 0.08, 0.26, 32), MAT.floorTile);
+      cabTile.position.set(0, 0.13, 0);
+      cabinGroup.add(cabTile);
+
+      const cabCeil = new THREE.Mesh(new THREE.CylinderGeometry(cabR, cabR, 0.24, 32), MAT.darkSteel);
+      cabCeil.position.set(0, cabH, 0);
+      cabinGroup.add(cabCeil);
+      const ledHalo = new THREE.Mesh(new THREE.TorusGeometry(cabR - 0.35, 0.07, 12, 32), MAT.crystalGlow);
+      ledHalo.rotation.x = Math.PI / 2;
+      ledHalo.position.set(0, cabH - 0.14, 0);
+      cabinGroup.add(ledHalo);
+
+      const cabLight = new THREE.PointLight(0xfffbeb, 1.3, 14);
+      cabLight.position.set(0, cabH - 0.6, 0);
+      cabinGroup.add(cabLight);
+
+      const cabGlassGeo = new THREE.CylinderGeometry(cabR - 0.03, cabR - 0.03, cabH - 0.25, 32, 1, true, -Math.PI * 0.72, Math.PI * 1.44);
+      const cabGlass = new THREE.Mesh(cabGlassGeo, MAT.liftGlass);
+      cabGlass.position.set(0, cabH / 2, 0);
+      cabinGroup.add(cabGlass);
+
+      const handrailGeo = new THREE.TorusGeometry(cabR - 0.14, 0.05, 10, 28, Math.PI * 1.35);
+      const handrail = new THREE.Mesh(handrailGeo, MAT.goldBrass);
+      handrail.rotation.x = Math.PI / 2;
+      handrail.rotation.z = -Math.PI * 0.675;
+      handrail.position.set(0, 3.2, 0);
+      cabinGroup.add(handrail);
+
+      box(0.16, 5.2, 0.5, MAT.goldBrass, 0, 2.8, cabR - 0.16, cabinGroup);
+      box(0.2, 0.5, 0.35, MAT.tvScreen, 0, 4.4, cabR - 0.16, cabinGroup);
+
+      const leftDoorGeo = new THREE.CylinderGeometry(cabR, cabR, cabH - 0.3, 16, 1, true, Math.PI * 0.75, Math.PI * 0.24);
+      const rightDoorGeo = new THREE.CylinderGeometry(cabR, cabR, cabH - 0.3, 16, 1, true, Math.PI * 1.01, Math.PI * 0.24);
+      const leftDoor = new THREE.Mesh(leftDoorGeo, MAT.glass);
+      const rightDoor = new THREE.Mesh(rightDoorGeo, MAT.glass);
+      leftDoor.position.set(0, cabH / 2, 0);
+      rightDoor.position.set(0, cabH / 2, 0);
+      cabinGroup.add(leftDoor);
+      cabinGroup.add(rightDoor);
+
+      hoistwayGroup.add(cabinGroup);
+      groups.interior.add(hoistwayGroup);
+
+      if (dir === 1) {
+        liftControllers.push({ cabinGroup, counterweight, leftDoor, rightDoor });
+      }
+    }
+
+    // --- 6. COMPACT U-SHAPED STAIRCASE (ZERO COLLISION WITH POWDER ROOM OR KITCHEN!) ---
+    function buildTrueBlueprintStaircase(Z, dir) {
+      const stairGroup = new THREE.Group();
+
+      const xFlight1Center = -4.7;
+      const xFlight2Center = -8.9;
+      const treadRun = 0.5833;
+
+      for (let i = 0; i < 12; i++) {
+        const lzMid = 8.2 + (i + 0.5) * treadRun;
+        const yBot  = i * 0.5;
+        const yTop  = (i + 1) * 0.5;
+
+        box(3.8, 0.5, treadRun, MAT.stairRiser, xFlight1Center, yBot + 0.25, Z(lzMid), stairGroup);
+        box(3.9, 0.1, treadRun + 0.06, MAT.stairTread, xFlight1Center, yTop + 0.05, Z(lzMid), stairGroup);
+      }
+
+      const waistLen = Math.hypot(7.0, 6.0);
+      const waistAngle = Math.atan2(6.0, 7.0);
+      const waist1 = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.5, waistLen), MAT.waistSlab);
+      waist1.position.set(xFlight1Center, 2.75, Z(11.7));
+      waist1.rotation.x = -dir * waistAngle;
+      stairGroup.add(waist1);
+
+      box(8.0, 0.55, 3.0, MAT.waistSlab, -6.8, 5.75, Z(16.7), stairGroup);
+      box(8.0, 0.1, 3.0, MAT.stairTread, -6.8, 6.05, Z(16.7), stairGroup);
+      box(8.2, 11.5, 0.35, MAT.interiorWall, -6.8, 5.75, Z(18.25), stairGroup);
+
+      for (let i = 0; i < 12; i++) {
+        const lzMid = 15.2 - (i + 0.5) * treadRun;
+        const yBot  = 6.0 + i * 0.5;
+        const yTop  = 6.0 + (i + 1) * 0.5;
+
+        box(3.8, 0.5, treadRun, MAT.stairRiser, xFlight2Center, yBot + 0.25, Z(lzMid), stairGroup);
+        box(3.9, 0.1, treadRun + 0.06, MAT.stairTread, xFlight2Center, yTop + 0.05, Z(lzMid), stairGroup);
+      }
+
+      const waist2 = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.5, waistLen), MAT.waistSlab);
+      waist2.position.set(xFlight2Center, 8.75, Z(11.7));
+      waist2.rotation.x = dir * waistAngle;
+      stairGroup.add(waist2);
+
+      box(0.14, 3.4, 7.0, MAT.glass, -6.8, 4.8, Z(11.7), stairGroup);
+      box(0.18, 0.15, 7.2, MAT.goldBrass, -6.8, 6.5, Z(11.7), stairGroup);
+      box(0.14, 3.4, 7.0, MAT.glass, -6.8, 10.8, Z(11.7), stairGroup);
+      box(0.18, 0.15, 7.2, MAT.goldBrass, -6.8, 12.5, Z(11.7), stairGroup);
+
+      box(0.14, 3.4, 10.0, MAT.glass, -2.8, 13.8, Z(13.2), stairGroup);
+      box(0.18, 0.15, 10.0, MAT.goldBrass, -2.8, 15.5, Z(13.2), stairGroup);
+
+      const stairLight = new THREE.PointLight(0xfffbeb, 1.7, 28);
+      stairLight.position.set(-6.8, 17.5, Z(13.5));
+      interiorLightsGroup.add(stairLight);
+
+      const powderFoyerLight = new THREE.PointLight(0xfffbeb, 1.5, 20);
+      powderFoyerLight.position.set(-5.5, 10.5, Z(6.8));
+      interiorLightsGroup.add(powderFoyerLight);
+
+      const kitchenHallLight = new THREE.PointLight(0xfffbeb, 1.6, 22);
+      kitchenHallLight.position.set(-6.8, 10.5, Z(21.5));
+      interiorLightsGroup.add(kitchenHallLight);
+
+      groups.interior.add(stairGroup);
+    }
+
+    // --- 7. HIGH-DETAIL KITCHEN & ISLAND DINING BUILDER ---
+    function createDetailedKitchenAndIsland(Z) {
+      const kg = new THREE.Group();
+
+      const ix = -17.2;
+      const iz = Z(17.3);
+
+      box(3.2, 2.85, 5.8, MAT.woodWalnut, ix, 1.425, iz, kg);
+      box(3.7, 0.22, 6.3, MAT.whiteQuartz, ix, 2.95, iz, kg);
+      box(3.7, 2.95, 0.18, MAT.whiteQuartz, ix, 1.475, Z(14.2), kg);
+      box(3.7, 2.95, 0.18, MAT.whiteQuartz, ix, 1.475, Z(20.4), kg);
+
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.35, 0.35, 20), MAT.goldBrass);
+      bowl.position.set(ix, 3.22, iz);
+      kg.add(bowl);
+
+      [15.6, 19.0].forEach(lzChair => {
+        box(1.4, 0.18, 1.4, MAT.cushionCream, ix + 2.3, 1.85, Z(lzChair), kg);
+        box(0.2, 1.4, 1.4, MAT.sofaFabric, ix + 2.9, 2.55, Z(lzChair), kg);
+        box(1.3, 1.8, 1.3, MAT.darkSteel, ix + 2.3, 0.9, Z(lzChair), kg);
+
+        box(1.4, 0.18, 1.4, MAT.cushionCream, ix - 2.3, 1.85, Z(lzChair), kg);
+        box(0.2, 1.4, 1.4, MAT.sofaFabric, ix - 2.9, 2.55, Z(lzChair), kg);
+        box(1.3, 1.8, 1.3, MAT.darkSteel, ix - 2.3, 0.9, Z(lzChair), kg);
+      });
+
+      [15.3, 17.3, 19.3].forEach(lzPend => {
+        const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 4.2, 8), MAT.goldBrass);
+        cord.position.set(ix, 9.4, Z(lzPend));
+        kg.add(cord);
+        const shade = new THREE.Mesh(new THREE.ConeGeometry(0.55, 0.7, 16), MAT.goldBrass);
+        shade.position.set(ix, 7.2, Z(lzPend));
+        kg.add(shade);
+        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.22, 12, 12), MAT.crystalGlow);
+        bulb.position.set(ix, 6.85, Z(lzPend));
+        kg.add(bulb);
+      });
+
+      // East Wall 4-Burner Hob Counter (`⊕⊕` on g.f plan.pdf)
+      box(2.1, 2.8, 7.0, MAT.cabinetSage, -12.25, 1.4, Z(9.5), kg);
+      box(2.25, 0.18, 7.2, MAT.marbleCounter, -12.25, 2.9, Z(9.5), kg);
+      box(0.08, 3.2, 7.0, MAT.backsplash, -11.24, 4.6, Z(9.5), kg);
+
+      box(1.5, 0.08, 2.6, MAT.tvScreen, -12.25, 3.02, Z(9.5), kg);
+      [[-0.38, -0.65], [0.38, -0.65], [-0.38, 0.65], [0.38, 0.65]].forEach(([bx, bz]) => {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.04, 8, 20), MAT.burnerFlame);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(-12.25 + bx, 3.08, Z(9.5 + bz));
+        kg.add(ring);
+      });
+
+      box(1.8, 0.35, 2.8, MAT.stainlessSteel, -12.1, 6.4, Z(9.5), kg);
+      box(0.9, 4.8, 1.0, MAT.stainlessSteel, -11.7, 9.0, Z(9.5), kg);
+
+      // Inner Wall Double-Bowl Sink Counter (Under Window KW1)
+      box(10.0, 2.8, 2.1, MAT.cabinetSage, -16.2, 1.4, Z(1.8), kg);
+      box(10.2, 0.18, 2.25, MAT.marbleCounter, -16.2, 2.9, Z(1.8), kg);
+
+      box(3.4, 0.06, 1.6, MAT.stainlessSteel, -14.8, 3.01, Z(1.8), kg);
+      box(1.0, 0.08, 1.3, MAT.sinkBasin, -13.8, 3.02, Z(1.8), kg);
+      box(1.0, 0.08, 1.3, MAT.sinkBasin, -15.0, 3.02, Z(1.8), kg);
+      const faucetPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.1, 10), MAT.goldBrass);
+      faucetPipe.position.set(-14.4, 3.55, Z(1.1));
+      kg.add(faucetPipe);
+      box(0.08, 0.08, 0.55, MAT.goldBrass, -14.4, 4.05, Z(1.35), kg);
+
+      // West Wall Prep Counter, Upper Cabinets, Oven Tower & Double-Door Fridge
+      box(2.1, 2.8, 17.6, MAT.cabinetSage, -22.2, 1.4, Z(9.6), kg);
+      box(2.25, 0.18, 17.8, MAT.marbleCounter, -22.2, 2.9, Z(9.6), kg);
+      [3.5, 6.5, 9.5, 12.5, 15.5].forEach(lzHandle => {
+        box(0.08, 0.08, 0.8, MAT.goldBrass, -21.1, 2.3, Z(lzHandle), kg);
+        box(0.08, 0.08, 0.8, MAT.goldBrass, -21.1, 1.3, Z(lzHandle), kg);
+      });
+
+      box(1.3, 2.6, 4.8, MAT.woodWalnut, -22.5, 7.8, Z(3.5), kg);
+      box(1.3, 2.6, 5.5, MAT.woodWalnut, -22.5, 7.8, Z(15.5), kg);
+      box(0.2, 0.06, 4.6, MAT.crystalGlow, -22.1, 6.45, Z(3.5), kg);
+      box(0.2, 0.06, 5.3, MAT.crystalGlow, -22.1, 6.45, Z(15.5), kg);
+
+      box(2.3, 7.8, 2.4, MAT.woodWalnut, -22.0, 3.9, Z(19.8), kg);
+      box(0.12, 1.8, 1.9, MAT.tvScreen, -20.82, 4.8, Z(19.8), kg);
+      box(0.12, 1.1, 1.9, MAT.tvScreen, -20.82, 6.5, Z(19.8), kg);
+
+      box(2.5, 6.6, 2.8, MAT.stainlessSteel, -21.9, 3.3, Z(22.5), kg);
+      box(0.08, 6.4, 0.06, MAT.darkSteel, -20.62, 3.3, Z(22.5), kg);
+      box(0.12, 2.2, 0.08, MAT.goldBrass, -20.58, 4.0, Z(22.3), kg);
+      box(0.12, 2.2, 0.08, MAT.goldBrass, -20.58, 4.0, Z(22.7), kg);
+
+      const kLight1 = new THREE.PointLight(0xfffbeb, 1.6, 28);
+      kLight1.position.set(-17.2, 10.5, Z(17.3));
+      interiorLightsGroup.add(kLight1);
+
+      const kLight2 = new THREE.PointLight(0xfffbeb, 1.5, 26);
+      kLight2.position.set(-16.5, 10.5, Z(7.5));
+      interiorLightsGroup.add(kLight2);
+
+      groups.furniture.add(kg);
+    }
+
+    // --- 8. SHARED 4'-0" x 11'-0" GUEST & MIDDLE BEDROOM TOILET FIXTURES ---
+    function createShared4x11ToiletFixtures(Z) {
+      const tg = new THREE.Group();
+      box(1.5, 2.6, 2.4, MAT.woodDark, 10.9, 1.3, Z(30.2), tg);
+      box(1.65, 0.16, 2.5, MAT.whiteQuartz, 10.9, 2.7, Z(30.2), tg);
+      box(0.08, 3.2, 2.2, MAT.crystalGlow, 10.2, 4.8, Z(30.2), tg);
+
+      box(1.8, 1.5, 1.4, MAT.bedSheet, 11.1, 0.75, Z(33.6), tg);
+
+      box(4.0, 7.2, 0.12, MAT.glass, 12.1, 3.6, Z(35.6), tg);
+      box(0.8, 0.08, 0.8, MAT.goldBrass, 12.1, 7.5, Z(37.2), tg);
+
+      const stLight = new THREE.PointLight(0xfffbeb, 1.5, 18);
+      stLight.position.set(12.1, 10.2, Z(32.5));
+      interiorLightsGroup.add(stLight);
+
+      const vestLight = new THREE.PointLight(0xfffbeb, 1.4, 16);
+      vestLight.position.set(12.1, 10.2, Z(26.2));
+      interiorLightsGroup.add(vestLight);
+
+      groups.furniture.add(tg);
+    }
+
+    // --- 9. OTHER ROOM FURNITURE BUILDERS ---
+    function createProportionalBed(xCenter, yFloor, Z, dir, bedWidth = 5.5, showSideTables = true) {
+      const bg = new THREE.Group();
+      bg.position.set(xCenter, yFloor, Z(38.6));
+      if (dir === -1) bg.rotation.y = Math.PI;
+
+      const bedLen = 6.4;
+
+      box(bedWidth + 0.3, 3.8, 0.35, MAT.woodDark, 0, 1.9, -0.2, bg);
+      box(bedWidth - 0.2, 2.2, 0.2, MAT.cushionCream, 0, 2.1, -0.35, bg);
+      box(bedWidth + 0.2, 0.9, bedLen, MAT.woodDark, 0, 0.45, -bedLen / 2 - 0.2, bg);
+      box(bedWidth, 0.75, bedLen - 0.2, MAT.bedSheet, 0, 1.2, -bedLen / 2 - 0.2, bg);
+      box(bedWidth + 0.04, 0.77, bedLen * 0.55, MAT.bedBlanket, 0, 1.22, -bedLen * 0.72, bg);
+      [-bedWidth * 0.25, bedWidth * 0.25].forEach(px => {
+        box(bedWidth * 0.36, 0.38, 1.2, MAT.cushionCream, px, 1.72, -1.1, bg);
+      });
+
+      if (showSideTables) {
+        [-bedWidth / 2 - 1.1, bedWidth / 2 + 1.1].forEach(nx => {
+          box(1.5, 1.6, 1.4, MAT.woodDark, nx, 0.8, -0.9, bg);
+          const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.36, 0.8, 12), MAT.cushionCream);
+          lamp.position.set(nx, 2.0, -0.9);
+          bg.add(lamp);
+        });
+      }
+
+      box(3.8, 2.2, 0.15, MAT.tvScreen, 0, 4.8, -13.6, bg);
+      groups.furniture.add(bg);
+    }
+
+    function createLivingRoomFurniture(Z, dir) {
+      const lg = new THREE.Group();
+      lg.position.set(11.5, 0.2, Z(9.5));
+
+      box(12.0, 0.06, 10.0, MAT.rug, 0, 0.03, 0, lg);
+      box(9.5, 1.35, 2.8, MAT.sofaFabric, 0, 0.68, -4.0 * dir, lg);
+      box(9.5, 2.7, 0.65, MAT.sofaFabric, 0, 1.35, -5.1 * dir, lg);
+      box(2.8, 1.35, 7.0, MAT.sofaFabric, 4.8, 0.68, -0.5 * dir, lg);
+      box(0.65, 2.7, 7.0, MAT.sofaFabric, 5.9, 1.35, -0.5 * dir, lg);
+
+      box(4.6, 0.16, 2.5, MAT.marbleCounter, 0, 1.25, -0.5 * dir, lg);
+      box(4.2, 1.1, 2.1, MAT.goldBrass, 0, 0.6, -0.5 * dir, lg);
+
+      const chanGroup = new THREE.Group();
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 8.5, 8), MAT.goldBrass);
+      rod.position.set(2.0, 19.2, 0);
+      chanGroup.add(rod);
+      [
+        { r: 3.2, y: 17.0 },
+        { r: 2.2, y: 15.6 },
+        { r: 1.2, y: 14.3 }
+      ].forEach(tier => {
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(tier.r, 0.14, 12, 32), MAT.goldBrass);
+        ring.rotation.x = Math.PI / 2;
+        ring.position.set(2.0, tier.y, 0);
+        chanGroup.add(ring);
+
+        const glowRing = new THREE.Mesh(new THREE.TorusGeometry(tier.r - 0.1, 0.08, 8, 32), MAT.crystalGlow);
+        glowRing.rotation.x = Math.PI / 2;
+        glowRing.position.set(2.0, tier.y - 0.12, 0);
+        chanGroup.add(glowRing);
+      });
+      lg.add(chanGroup);
+
+      const liveLight = new THREE.PointLight(0xfffbeb, 2.0, 42);
+      liveLight.position.set(13.5, 15.0, Z(10.0));
+      interiorLightsGroup.add(liveLight);
+
+      groups.furniture.add(lg);
+    }
+
+    function createPowderRoomFixtures(Z) {
+      const pg = new THREE.Group();
+      box(1.6, 2.6, 2.4, MAT.woodDark, -9.8, 1.3, Z(3.0), pg);
+      box(1.8, 0.16, 2.6, MAT.bedSheet, -9.8, 2.7, Z(3.0), pg);
+      box(0.1, 3.0, 2.2, MAT.crystalGlow, -10.6, 4.8, Z(3.0), pg);
+      box(1.4, 1.5, 1.8, MAT.bedSheet, -7.0, 0.75, Z(1.8), pg);
+      const prLight = new THREE.PointLight(0xfffbeb, 1.2, 14);
+      prLight.position.set(-6.8, 10.2, Z(3.0));
+      interiorLightsGroup.add(prLight);
+      groups.furniture.add(pg);
+    }
+
+    function createBathroomFixtures(x, y, z) {
+      const bg = new THREE.Group();
+      bg.position.set(x, y, z);
+      box(2.6, 2.6, 1.6, MAT.woodDark, -0.8, 1.3, -1.5, bg);
+      box(2.8, 0.16, 1.8, MAT.bedSheet, -0.8, 2.7, -1.5, bg);
+      box(1.3, 1.5, 1.8, MAT.bedSheet, 1.2, 0.75, -1.5, bg);
+      box(3.0, 7.0, 0.1, MAT.glass, 0, 3.5, 1.0, bg);
+      groups.furniture.add(bg);
+    }
+
+    // --- 10. EXTERIOR FACADE COMPONENTS ---
+    function createDoubleHeightArchedWindow(x, z, width = 7.8) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+      const frameDepth = 0.85;
+      const totalH = 21.5;
+      const radius = width / 2;
+
+      box(frameDepth, totalH - radius, 0.35, MAT.darkFrame, 0, (totalH - radius) / 2 + 1.0, -width / 2, group);
+      box(frameDepth, totalH - radius, 0.35, MAT.darkFrame, 0, (totalH - radius) / 2 + 1.0, width / 2, group);
+      box(frameDepth, 0.35, width, MAT.darkFrame, 0, 1.0, 0, group);
+      box(frameDepth * 0.9, 3.8, width, MAT.spandrel, 0, 11.9, 0, group);
+
+      box(0.15, 8.8, width - 0.4, MAT.glass, 0, 5.5, 0, group);
+      box(0.15, 5.2, width - 0.4, MAT.glass, 0, 16.4, 0, group);
+
+      const archShape = new THREE.Shape();
+      archShape.absarc(0, 0, radius, 0, Math.PI, false);
+      const archGlassGeo = new THREE.ShapeGeometry(archShape, 24);
+      archGlassGeo.rotateY(Math.PI / 2);
+      const archGlass = new THREE.Mesh(archGlassGeo, MAT.glass);
+      archGlass.position.set(0, totalH - radius + 1.0, 0);
+      group.add(archGlass);
+
+      const ringGeo = new THREE.RingGeometry(radius - 0.38, radius + 0.08, 28, 1, 0, Math.PI);
+      ringGeo.rotateY(Math.PI / 2);
+      const ringMesh = new THREE.Mesh(ringGeo, MAT.darkFrame);
+      ringMesh.position.set(0.35, totalH - radius + 1.0, 0);
+      group.add(ringMesh);
+
+      [-width / 6, width / 6].forEach(mz => {
+        box(frameDepth * 0.95, totalH - 0.8, 0.16, MAT.darkFrame, 0, totalH / 2 + 0.8, mz, group);
+      });
+      [5.5, 10.0, 13.8, 17.8].forEach(my => {
+        box(frameDepth * 0.95, 0.16, width, MAT.darkFrame, 0, my, 0, group);
+      });
+      [-width * 0.34, width * 0.34].forEach(cz => {
+        box(0.2, 8.4, width * 0.22, MAT.curtain, -0.45, 5.5, cz, group);
+        box(0.2, 7.2, width * 0.22, MAT.curtain, -0.45, 17.2, cz, group);
+      });
+
+      groups.gf.add(group);
+    }
+
+    function createClassicalColumn(x, yBottom, height, z, parent) {
+      const colGroup = new THREE.Group();
+      colGroup.position.set(x, yBottom, z);
+      box(1.9, 1.2, 1.9, MAT.stuccoTrim, 0, 0.6, 0, colGroup);
+      box(1.45, height - 2.2, 1.45, MAT.stucco, 0, height / 2, 0, colGroup);
+      [-0.3, 0, 0.3].forEach(offset => {
+        box(1.52, height - 3.4, 0.1, MAT.stuccoTrim, 0, height / 2, offset, colGroup);
+      });
+      box(1.95, 1.0, 1.95, MAT.stuccoTrim, 0, height - 0.5, 0, colGroup);
+      parent.add(colGroup);
+    }
+
+    // --- 11. BUILD TWIN BLOCKS ---
+    function buildBlock(dir) {
+      const Z = (localZ) => dir * (6.0 + localZ);
+
+      function roomBox(x1, x2, y1, y2, lz1, lz2, mat, targetGroup) {
+        const w = Math.abs(x2 - x1);
+        const h = Math.abs(y2 - y1);
+        const d = Math.abs(lz2 - lz1);
+        const cx = (x1 + x2) / 2;
+        const cy = (y1 + y2) / 2;
+        const cz = Z((lz1 + lz2) / 2);
+        return box(w, h, d, mat, cx, cy, cz, targetGroup);
+      }
+
+      // 1. GROUND FLOOR SLAB, EXTERIOR WALLS & ROOMS (0' to +12')
+      roomBox(-24, 24, -2.0, 0, 0, 39.5, MAT.concrete, groups.gf);
+      roomBox(-23.25, 23.25, 0, 0.2, 0.75, 24.5, MAT.floorTile, groups.gf);
+      roomBox(-23.25, 23.25, 0, 0.2, 24.5, 38.75, MAT.woodFloor, groups.gf);
+      roomBox(10.1, 14.1, 0.02, 0.22, 24.5, 38.75, MAT.floorTile, groups.gf);
+      roomBox(18.8, 23.8, 0.02, 0.22, 11.6, 23.8, MAT.balconyDeck, groups.gf);
+
+      for (let s = 0; s < 5; s++) {
+        const sx = 24.0 + (s + 0.5) * 1.0;
+        const sy = -2.0 + (4 - s) * 0.4;
+        roomBox(sx - 0.5, sx + 0.5, -2.0, sy + 0.4, 12.0, 24.5, MAT.graniteStep, groups.gf);
+      }
+      roomBox(24.5, 28.5, -1.6, 0.3, 17.2, 19.2, MAT.stuccoTrim, groups.gf);
+      roomBox(24.8, 28.2, 0.3, 1.1, 17.5, 18.9, MAT.shrub, groups.gf);
+
+      roomBox(23.25, 24.0, 0, 12, 0, 1.8, MAT.stucco, groups.gf);
+      roomBox(23.25, 24.0, 0, 12, 9.7, 11.5, MAT.stucco, groups.gf);
+      roomBox(23.25, 24.0, 0, 12, 24.5, 28.0, MAT.stucco, groups.gf);
+      roomBox(23.25, 24.0, 0, 12, 36.0, 39.5, MAT.stucco, groups.gf);
+      roomBox(18.5, 24.0, 0, 12, 11.1, 11.6, MAT.stucco, groups.gf);
+      roomBox(18.5, 24.0, 0, 12, 24.4, 24.9, MAT.stucco, groups.gf);
+
+      createDoubleHeightArchedWindow(23.8, Z(5.75), 7.8);
+      createDoubleHeightArchedWindow(23.8, Z(32.0), 7.8);
+
+      wallWithDoor(18.5, 19.0, 0, 12, Z(11.6), Z(24.4), 0.38, 4.8, MAT.stucco, groups.gf);
+
+      createClassicalColumn(23.3, 0, 12, Z(12.2), groups.gf);
+      createClassicalColumn(23.3, 0, 12, Z(23.8), groups.gf);
+      createClassicalColumn(23.6, 0, 12, Z(0.8), groups.gf);
+      createClassicalColumn(23.6, 0, 12, Z(38.7), groups.gf);
+      roomBox(18.8, 25.0, 11.6, 12.3, 11.0, 25.0, MAT.roof, groups.gf);
+
+      wallWithWindow(-24, 0, 0, 12, Z(38.75), Z(39.5), 0.35, 6.0, 2.5, 6.0, MAT.stucco, groups.gf);
+      wallWithWindow(0, 24, 0, 12, Z(38.75), Z(39.5), 0.22, 5.5, 2.5, 6.0, MAT.stucco, groups.gf);
+      wallWithWindow(-24, -23.25, 0, 12, Z(0), Z(39.5), 0.24, 5.5, 3.2, 4.5, MAT.stucco, groups.gf);
+
+      wallWithWindow(-24.0, -2.5, 0, 12, Z(0), Z(0.75), 0.42, 4.5, 3.2, 4.2, MAT.stucco, groups.gf);
+      wallWithDoor(-2.5, 8.5, 0, 12, Z(0), Z(0.75), 0.5, 5.2, MAT.stucco, groups.gf);
+      wallWithWindow(8.5, 23.25, 0, 12, Z(0), Z(0.75), 0.5, 7.0, 1.5, 8.5, MAT.stucco, groups.gf);
+
+      buildDetailedCircularLift(Z, dir);
+      buildTrueBlueprintStaircase(Z, dir);
+
+      // Powder Room (8'-0" x 4'-6")
+      wallWithDoor(-10.8, -2.8, 0, 11.5, Z(5.15), Z(5.5), 0.78, 2.6, MAT.interiorWall, groups.interior);
+      roomBox(-3.0, -2.6, 0, 11.5, 0.75, 5.5, MAT.interiorWall, groups.interior);
+      createPowderRoomFixtures(Z);
+
+      // Kitchen & Island Dining East Wall (with 6'-2" wide unobstructed archway at Local Z = 18.25' to 24.4')
+      roomBox(-11.2, -10.8, 0, 11.5, 0.75, 18.25, MAT.interiorWall, groups.interior);
+      roomBox(-11.2, -10.8, 8.8, 11.5, 18.25, 24.4, MAT.interiorWall, groups.interior);
+
+      // Shared 4'-0" x 11'-0" Toilet Between Guest Bedroom (8'x14') & Middle Bedroom (10'x14')
+      roomBox(14.5, 23.25, 0, 11.5, 24.38, 24.75, MAT.interiorWall, groups.interior);
+      wallWithDoor(10.1, 14.5, 0, 11.5, Z(24.38), Z(24.75), 0.5, 3.0, MAT.interiorWall, groups.interior);
+      wallWithDoor(-0.25, 9.75, 0, 11.5, Z(24.38), Z(24.75), 0.75, 3.2, MAT.interiorWall, groups.interior);
+
+      wallWithDoor(14.1, 14.5, 0, 11.5, Z(24.75), Z(27.85), 0.5, 2.7, MAT.interiorWall, groups.interior);
+      roomBox(14.1, 14.5, 0, 11.5, 27.85, 38.75, MAT.interiorWall, groups.interior);
+
+      wallWithDoor(9.75, 10.13, 0, 11.5, Z(24.75), Z(27.85), 0.5, 2.6, MAT.interiorWall, groups.interior);
+      roomBox(9.75, 10.13, 0, 11.5, 27.85, 38.75, MAT.interiorWall, groups.interior);
+
+      wallWithDoor(10.1, 14.1, 0, 11.5, Z(27.55), Z(27.92), 0.5, 2.5, MAT.interiorWall, groups.interior);
+
+      createShared4x11ToiletFixtures(Z);
+
+      roomBox(-0.63, -0.25, 0, 11.5, 24.38, 38.75, MAT.interiorWall, groups.interior);
+
+      // Ground Floor Master Suite
+      roomBox(-8.25, -0.63, 0, 11.5, 24.38, 24.75, MAT.interiorWall, groups.interior);
+      wallWithDoor(-23.25, -8.25, 0, 11.5, Z(24.38), Z(24.75), 0.85, 3.4, MAT.interiorWall, groups.interior);
+      wallWithDoor(-8.63, -8.25, 0, 11.5, Z(24.75), Z(30.75), 0.5, 3.0, MAT.interiorWall, groups.interior);
+      roomBox(-8.63, -8.25, 0, 11.5, 30.75, 38.75, MAT.interiorWall, groups.interior);
+      wallWithDoor(-8.25, -0.63, 0, 11.5, Z(30.55), Z(30.93), 0.5, 2.6, MAT.interiorWall, groups.interior);
+      roomBox(-7.8, -1.0, 0.2, 8.5, 24.8, 26.3, MAT.woodDark, groups.furniture);
+
+      createLivingRoomFurniture(Z, dir);
+      createDetailedKitchenAndIsland(Z);
+      createProportionalBed(-15.75, 0.2, Z, dir, 6.0, true);
+      createProportionalBed(4.75, 0.2, Z, dir, 5.0, true);
+      createProportionalBed(18.6, 0.2, Z, dir, 4.5, false);
+      createBathroomFixtures(-4.5, 0.2, Z(35.5));
+
+      [[-15.75, 31], [4.75, 31], [18.6, 31], [11.5, 22]].forEach(([lx, lz]) => {
+        const pl = new THREE.PointLight(0xfffbeb, 1.35, 26);
+        pl.position.set(lx, 10.5, Z(lz));
+        interiorLightsGroup.add(pl);
+      });
+
+      if (dir === 1) {
+        addFloorDimensionTape(14.6, 22.9, 0.25, Z(24.9), Z(38.6), "GUEST BEDROOM: 8'-0\" × 14'-0\"");
+        addFloorDimensionTape(10.2, 14.0, 0.25, Z(28.0), Z(38.6), "SHARED TOILET: 4'-0\" × 11'-0\"");
+        addFloorDimensionTape(-0.1, 9.6, 0.25, Z(24.9), Z(38.6), "MIDDLE BEDROOM: 10'-0\" × 14'-0\"");
+        addFloorDimensionTape(-23.1, -8.7, 0.25, Z(24.9), Z(38.6), "MASTER BEDROOM: 15'-0\" × 14'-0\"");
+        addFloorDimensionTape(-10.6, -3.0, 0.25, Z(0.9), Z(5.1), "POWDER ROOM: 8'-0\" × 4'-6\"");
+        addFloorDimensionTape(-23.1, -11.3, 0.25, Z(13.5), Z(24.2), "ISLAND DINING (2'-0\" CLEARANCE)");
+        addFloorDimensionTape(-23.1, -11.3, 0.25, Z(1.0), Z(13.2), "KITCHEN: 12'-0\" × 12'-0\"");
+      }
+
+      // 2. FIRST FLOOR SLAB & ROOMS (+12' to +24')
+      roomBox(-24.0, -11.0, 11.5, 12.1, 0, 24.5, MAT.slab, groups.ff);
+      roomBox(-2.8, 6.0, 11.5, 12.1, 0, 24.5, MAT.slab, groups.ff);
+      roomBox(-11.0, -2.8, 11.5, 12.1, 0, 8.2, MAT.slab, groups.ff);
+      roomBox(-11.0, -2.8, 11.5, 12.1, 18.2, 24.5, MAT.slab, groups.ff);
+
+      roomBox(6.0, 14.1, 11.5, 12.1, 17.2, 24.5, MAT.slab, groups.ff);
+      roomBox(14.1, 18.8, 11.5, 12.1, 17.2, 20.0, MAT.slab, groups.ff);
+
+      roomBox(-24.0, 24.0, 11.5, 12.1, 24.5, 39.5, MAT.slab, groups.ff);
+
+      roomBox(18.5, 24.0, 11.5, 12.1, 0, 24.5, MAT.slab, groups.ff);
+      roomBox(18.85, 23.75, 12.1, 12.28, 2.5, 24.4, MAT.balconyDeck, groups.ff);
+
+      roomBox(-2.8, 6.0, 12.1, 12.26, 0.75, 24.5, MAT.floorTile, groups.ff);
+      roomBox(-10.8, -2.8, 12.1, 12.26, 0.75, 8.2, MAT.floorTile, groups.ff);
+      roomBox(-10.8, -2.8, 12.1, 12.26, 18.2, 24.5, MAT.floorTile, groups.ff);
+      roomBox(6.0, 14.1, 12.1, 12.26, 17.2, 24.5, MAT.floorTile, groups.ff);
+      roomBox(14.1, 18.85, 12.1, 12.26, 17.2, 20.0, MAT.floorTile, groups.ff);
+      roomBox(-23.25, 23.25, 12.1, 12.26, 24.5, 38.75, MAT.woodFloor, groups.ff);
+
+      roomBox(-10.8, -2.8, 12.25, 15.5, 18.1, 18.3, MAT.glass, groups.ff);
+      roomBox(-10.8, -2.8, 15.5, 15.7, 18.1, 18.3, MAT.goldBrass, groups.ff);
+
+      roomBox(5.85, 6.05, 12.25, 15.5, 0.75, 17.2, MAT.glass, groups.ff);
+      roomBox(5.8, 6.1, 15.5, 15.7, 0.75, 17.2, MAT.goldBrass, groups.ff);
+      roomBox(6.0, 18.6, 12.25, 15.5, 17.1, 17.3, MAT.glass, groups.ff);
+      roomBox(6.0, 18.6, 15.5, 15.7, 17.1, 17.3, MAT.goldBrass, groups.ff);
+
+      wallWithWindow(-11.0, -2.5, 12, 24, Z(0), Z(0.75), 0.5, 4.5, 3.0, 5.0, MAT.stucco, groups.ff);
+      wallWithDoor(-2.5, 8.5, 12, 24, Z(0), Z(0.75), 0.5, 5.4, MAT.stucco, groups.ff);
+      wallWithWindow(8.5, 23.25, 12, 24, Z(0), Z(0.75), 0.5, 7.0, 2.0, 7.5, MAT.stucco, groups.ff);
+
+      wallWithWindow(18.5, 18.95, 12, 24, Z(0.75), Z(16.8), 0.55, 11.0, 1.2, 8.0, MAT.stucco, groups.ff);
+      wallWithDoor(18.5, 18.95, 12.0, 24.0, Z(16.8), Z(20.2), 0.5, 3.0, MAT.stucco, groups.ff);
+      roomBox(18.5, 18.95, 12, 24, 20.2, 24.5, MAT.stucco, groups.ff);
+      roomBox(18.5, 24.0, 12, 24, 24.4, 24.9, MAT.stucco, groups.ff);
+
+      roomBox(23.25, 24.0, 12, 24, 0, 1.8, MAT.stucco, groups.ff);
+      roomBox(23.25, 24.0, 12, 24, 9.7, 11.5, MAT.stucco, groups.ff);
+      roomBox(23.25, 24.0, 12, 24, 24.5, 28.0, MAT.stucco, groups.ff);
+      roomBox(23.25, 24.0, 12, 24, 36.0, 39.5, MAT.stucco, groups.ff);
+
+      roomBox(23.55, 23.75, 12.25, 15.5, 12.2, 23.8, MAT.glass, groups.ff);
+      roomBox(23.45, 23.85, 15.5, 15.7, 12.2, 23.8, MAT.darkFrame, groups.ff);
+      roomBox(21.0, 23.75, 15.5, 15.7, 11.6, 11.8, MAT.darkFrame, groups.ff);
+      roomBox(21.0, 23.75, 15.5, 15.7, 24.2, 24.4, MAT.darkFrame, groups.ff);
+
+      createClassicalColumn(23.3, 12, 12, Z(12.2), groups.ff);
+      createClassicalColumn(23.3, 12, 12, Z(23.8), groups.ff);
+
+      roomBox(20.4, 22.5, 12.28, 13.6, 13.2, 15.4, MAT.sofaFabric, groups.furniture);
+      roomBox(20.8, 22.1, 12.28, 13.5, 16.0, 17.2, MAT.goldBrass, groups.furniture);
+
+      const balcLight = new THREE.PointLight(0xfffbeb, 1.6, 25);
+      balcLight.position.set(21.2, 22.2, Z(18.0));
+      interiorLightsGroup.add(balcLight);
+
+      // First Floor Bedrooms, Store Room, Wardrobe & Toilets
+      roomBox(14.0, 23.25, 12, 23.5, 24.38, 24.75, MAT.interiorWall, groups.ff);
+      wallWithDoor(10.1, 14.0, 12, 23.5, Z(24.38), Z(24.75), 0.5, 3.2, MAT.interiorWall, groups.ff);
+
+      roomBox(9.9, 10.3, 12, 23.5, 24.38, 31.75, MAT.interiorWall, groups.ff);
+      wallWithDoor(9.9, 10.3, 12, 23.5, Z(31.75), Z(38.75), 0.35, 2.6, MAT.interiorWall, groups.ff);
+
+      wallWithDoor(-0.1, 9.9, 12, 23.5, Z(24.38), Z(24.75), 0.76, 3.0, MAT.interiorWall, groups.ff);
+      roomBox(-0.1, 9.9, 12, 23.5, 31.55, 31.93, MAT.interiorWall, groups.ff);
+      roomBox(-0.45, -0.05, 12, 23.5, 24.38, 38.75, MAT.interiorWall, groups.ff);
+
+      roomBox(-8.25, -0.25, 12, 23.5, 24.38, 24.75, MAT.interiorWall, groups.ff);
+      wallWithDoor(-23.25, -8.25, 12, 23.5, Z(24.38), Z(24.75), 0.85, 3.4, MAT.interiorWall, groups.ff);
+      wallWithDoor(-8.63, -8.25, 12, 23.5, Z(24.75), Z(30.75), 0.5, 3.0, MAT.interiorWall, groups.ff);
+      roomBox(-8.63, -8.25, 12, 23.5, 30.75, 38.75, MAT.interiorWall, groups.ff);
+      wallWithDoor(-8.25, -0.25, 12, 23.5, Z(30.55), Z(30.93), 0.5, 2.6, MAT.interiorWall, groups.ff);
+      roomBox(-7.8, -0.8, 12.25, 20.5, 24.8, 26.3, MAT.woodDark, groups.furniture);
+
+      roomBox(0.2, 5.5, 12.25, 19.5, 29.8, 31.4, MAT.woodDark, groups.furniture);
+
+      roomBox(-23.25, -11.0, 12.1, 12.4, 0.8, 24.5, MAT.terraceGrass, groups.ff);
+      roomBox(-24, -10.8, 12.0, 15.8, 0, 0.75, MAT.stucco, groups.ff);
+      roomBox(-24, -23.25, 12.0, 15.8, 0, 24.5, MAT.stucco, groups.ff);
+      [4, 10, 16, 21].forEach(sz => {
+        roomBox(-22.2, -20.2, 12.4, 14.5, sz - 0.8, sz + 0.8, MAT.shrub, groups.ff);
+      });
+      roomBox(-18.0, -15.0, 12.4, 13.8, 11.0, 15.0, MAT.woodDark, groups.ff);
+
+      wallWithWindow(-24, 0, 12, 24, Z(38.75), Z(39.5), 0.35, 6.0, 2.5, 6.0, MAT.stucco, groups.ff);
+      wallWithWindow(0, 24, 12, 24, Z(38.75), Z(39.5), 0.68, 6.0, 2.5, 6.0, MAT.stucco, groups.ff);
+      roomBox(-24, -23.25, 12, 24, 24.5, 39.5, MAT.stucco, groups.ff);
+      wallWithDoor(-11.2, -10.8, 12, 24, Z(0), Z(24.5), 0.88, 3.6, MAT.stucco, groups.ff);
+
+      createProportionalBed(-15.75, 12.25, Z, dir, 6.0, true);
+      createProportionalBed(16.6, 12.25, Z, dir, 5.8, true);
+
+      roomBox(-1.5, 1.0, 12.25, 13.6, 6.0, 12.5, MAT.sofaFabric, groups.furniture);
+      roomBox(1.8, 3.5, 12.25, 13.4, 7.5, 11.0, MAT.marbleCounter, groups.furniture);
+
+      createBathroomFixtures(-4.5, 12.25, Z(35.5));
+      createBathroomFixtures(4.8, 12.25, Z(35.5));
+
+      [[-15.75, 31], [16.6, 31], [2.2, 9], [13.5, 20]].forEach(([lx, lz]) => {
+        const pl = new THREE.PointLight(0xfffbeb, 1.4, 26);
+        pl.position.set(lx, 22.2, Z(lz));
+        interiorLightsGroup.add(pl);
+      });
+
+      // Roof Ceiling Slab + Hipped Crown
+      roomBox(-25.5, 26.0, 23.8, 24.6, -1.5, 41.5, MAT.roof, groups.roof);
+      roomBox(-23.5, 23.8, 23.6, 23.8, 0.5, 39.0, MAT.slab, groups.roof);
+      roomBox(17.5, 26.8, 24.6, 25.4, 10.0, 28.0, MAT.roof, groups.roof);
+
+      const hipGeo = new THREE.ConeGeometry(31, 4.8, 4);
+      hipGeo.rotateY(Math.PI / 4);
+      const hipMesh = new THREE.Mesh(hipGeo, MAT.roof);
+      hipMesh.scale.set(1.12, 1, 0.92);
+      hipMesh.position.set(1.0, 27.0, Z(20.0));
+      hipMesh.castShadow = true;
+      groups.roof.add(hipMesh);
+
+      [4, 8, 15, 20, 23, 30, 35].forEach(lz => {
+        const sp = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.15, 12), MAT.spotlight);
+        sp.position.set(22.5, 23.55, Z(lz));
+        groups.roof.add(sp);
+        const pl = new THREE.PointLight(0xffedd5, 0, 18);
+        pl.position.set(22.5, 22.5, Z(lz));
+        warmLightsGroup.add(pl);
+      });
+    }
+
+    buildBlock(-1);
+    buildBlock(1);
+
+    // --- 12. CENTRAL CONNECTING BRIDGE (9'-0" x 12'-0") & SITE ---
+    function buildCentralBridgeAndSite() {
+      const bxCenter = 3.0;
+      box(9.0, 0.7, 12.0, MAT.slab, bxCenter, 11.85, 0, groups.ff);
+      box(8.8, 0.12, 12.0, MAT.floorTile, bxCenter, 12.25, 0, groups.ff);
+
+      [-4.6, 4.6].forEach(dz => {
+        box(0.75, 11.5, 2.4, MAT.stucco, bxCenter + 4.15, 17.75, dz, groups.ff);
+        box(0.75, 11.5, 2.4, MAT.stucco, bxCenter - 4.15, 17.75, dz, groups.ff);
+      });
+      box(0.75, 2.6, 12.0, MAT.stucco, bxCenter + 4.15, 22.3, 0, groups.ff);
+      box(0.75, 2.6, 12.0, MAT.stucco, bxCenter - 4.15, 22.3, 0, groups.ff);
+      box(0.18, 3.2, 7.2, MAT.glass, bxCenter + 4.15, 13.9, 0, groups.ff);
+      box(0.22, 0.16, 7.2, MAT.darkFrame, bxCenter + 4.15, 15.5, 0, groups.ff);
+      box(0.18, 3.2, 7.2, MAT.glass, bxCenter - 4.15, 13.9, 0, groups.ff);
+      box(0.22, 0.16, 7.2, MAT.darkFrame, bxCenter - 4.15, 15.5, 0, groups.ff);
+
+      box(10.5, 0.7, 13.0, MAT.roof, bxCenter, 23.9, 0, groups.roof);
+
+      const bridgeLight = new THREE.PointLight(0xfffbeb, 1.5, 25);
+      bridgeLight.position.set(bxCenter, 21.5, 0);
+      interiorLightsGroup.add(bridgeLight);
+
+      box(140, 0.4, 150, MAT.lawn, 10, -2.2, 0, groups.site);
+      box(82, 0.45, 12.0, MAT.paver, 12, -2.15, 0, groups.site);
+      box(22, 0.45, 26.0, MAT.paver, 39, -2.15, -24, groups.site);
+      box(22, 0.45, 26.0, MAT.paver, 39, -2.15, 24, groups.site);
+      box(18, 0.46, 150, MAT.road, 59, -2.14, 0, groups.site);
+      box(1.2, 2.4, 34, MAT.concrete, 49, -1.0, -25, groups.site);
+      box(1.2, 2.4, 34, MAT.concrete, 49, -1.0, 25, groups.site);
+    }
+    buildCentralBridgeAndSite();
+
+    // --- 13. 23 VERIFIED 360° STATIONS ---
+    const stations360 = [
+      {
+        id: 0,
+        name: '1. Shared Toilet Vestibule (Between Guest Bed & Middle Bed)',
+        dims: "Exact Jack-and-Jill Junction: Connects Guest Bed (East), Middle Bed (West D2 Door) & Shared 4'×11' Toilet (South D2 Door)",
+        eye: [12.1, 5.2, 32.2], floorY: 0.25, lookAngle: 1.57
+      },
+      {
+        id: 1,
+        name: '2. Inside Shared 4\'-0" × 11\'-0" Toilet (Guest & Middle Bed)',
+        dims: "Blueprint Size: 4'-0\" × 11'-0\" Shared Bathroom (Vanity + Mirror + WC + Glass Shower Enclosure)",
+        eye: [12.1, 5.2, 37.5], floorY: 0.25, lookAngle: -1.57
+      },
+      {
+        id: 2,
+        name: '3. Ground Floor Guest Bedroom (8\'-0" × 14\'-0")',
+        dims: "Blueprint Size: 8'-0\" × 14'-0\" (Opens directly into the Shared 4'×11' Toilet Vestibule)",
+        eye: [17.2, 5.2, 33.2], floorY: 0.25, lookAngle: 2.2
+      },
+      {
+        id: 3,
+        name: '4. Ground Floor Middle Bedroom (10\'-0" × 14\'-0")',
+        dims: "Blueprint Size: 10'-0\" × 14'-0\" (Has D3 Hallway Door + East D2 Door into Shared 4'×11' Toilet!)",
+        eye: [5.5, 5.2, 33.2], floorY: 0.25, lookAngle: 0.8
+      },
+      {
+        id: 4,
+        name: '5. Unobstructed 6\'-0" Hallway Into Island Dining & Kitchen',
+        dims: "Staircase Ends at Z=18.2' Leaving a Full 6'-3\" Wide Hallway Straight Into Island Dining & Kitchen!",
+        eye: [-5.5, 5.2, 27.5], floorY: 0.25, lookAngle: Math.PI
+      },
+      {
+        id: 5,
+        name: '6. Island Dining View (2\'-0" Clearance & 4 Chairs)',
+        dims: "Waterfall Quartz Island + 4 Upholstered Dining Chairs + 3 Brass Pendant Lights + Refrigerator & Oven Tower",
+        eye: [-13.5, 5.2, 27.5], floorY: 0.25, lookAngle: -2.35
+      },
+      {
+        id: 6,
+        name: '7. Kitchen 4-Burner Hob (⊕⊕) & Double-Bowl Sink Zone',
+        dims: "Blueprint Size: 12'-0\" × 12'-0\" (East Wall 4-Burner Hob & Chimney + Inner Wall Double Sink Under KW1)",
+        eye: [-16.8, 5.2, 16.5], floorY: 0.25, lookAngle: -0.9
+      },
+      {
+        id: 7,
+        name: '8. GF Powder Room Entrance & Staircase Base Foyer',
+        dims: "100% Unobstructed D2 Door into Powder Room (8'-0\" × 4'-6\") + U-Staircase UP Flight",
+        eye: [-1.5, 5.2, 13.0], floorY: 0.25, lookAngle: 2.85
+      },
+      {
+        id: 8,
+        name: '9. Inside Ground Floor Powder Room (8\'-0" × 4\'-6")',
+        dims: "Blueprint Size: 8'-0\" × 4'-6\" (Entered via D2 Door from Full-Height Foyer | Vanity + WC)",
+        eye: [-5.5, 5.2, 9.2], floorY: 0.25, lookAngle: 3.1
+      },
+      {
+        id: 9,
+        name: '10. Ground Floor Formal Living (20\'-9" × 23\'-7½")',
+        dims: "Double-Storey High Ceiling Above | FD1 to Passage | Arched East Window",
+        eye: [6.5, 5.2, 18.0], floorY: 0.25, lookAngle: -1.2
+      },
+      {
+        id: 10,
+        name: '11. Ground Floor East Sitout (5\'-0" × 12\'-0")',
+        dims: "Main Entrance Porch with MD1 Door & Fluted Portico Columns",
+        eye: [21.3, 5.2, 23.5], floorY: 0.25, lookAngle: -2.2
+      },
+      {
+        id: 11,
+        name: '12. Ground Floor Master Bedroom (15\'-0" × 14\'-0")',
+        dims: "West Master Suite with 7'-8\" × 6'-0\" Walk-In Wardrobe & 7'-8\" × 8'-0\" Toilet",
+        eye: [-11.5, 5.2, 33.2], floorY: 0.25, lookAngle: 2.1
+      },
+      {
+        id: 12,
+        name: '13. U-Shaped Staircase Mid-Landing (+6\'-0" Level)',
+        dims: "Compact Mid-Landing (Local Z = 15.2' to 18.2') Leaving Both Powder Room & Kitchen Hallway Clear",
+        eye: [-6.8, 11.2, 22.7], floorY: 6.15, lookAngle: -1.57
+      },
+      {
+        id: 13,
+        name: '14. First Floor Lounge (8\'-3" × 13\'-3")',
+        dims: "Exact Blueprint Position: Looking Across Double-Height Void & Open FD1 Passage Doors",
+        eye: [2.5, 17.2, 13.5], floorY: 12.3, lookAngle: -1.57
+      },
+      {
+        id: 14,
+        name: '15. First Floor Connecting Passage Bridge (9\'-0" × 12\'-0")',
+        dims: "Completely Unobstructed Bridge Linking North & South Block Lounges via FD1 Double Doors",
+        eye: [3.0, 17.2, 0.0], floorY: 12.32, lookAngle: 1.57
+      },
+      {
+        id: 15,
+        name: '16. FF Lift Lobby, East Bed Door & D3 Balcony Door',
+        dims: "Exact Corner Junction: 4'-6\" Ø Lift + D3 to East Balcony (5'×22') + D3 to East Bed (12'4½\"×14')",
+        eye: [12.5, 17.2, 25.0], floorY: 12.3, lookAngle: 0.2
+      },
+      {
+        id: 16,
+        name: '17. First Floor East Balcony (5\'-0" × 22\'-0")',
+        dims: "Blueprint Size: 5'-0\" × 22'-0\" (Entered via D3 Door beside Lift | Fixed Glass to Living Void)",
+        eye: [21.3, 17.2, 24.0], floorY: 12.35, lookAngle: -2.0
+      },
+      {
+        id: 17,
+        name: '18. First Floor East Bedroom (12\'-4½" × 14\'-0")',
+        dims: "Blueprint Size: 12'-4½\" × 14'-0\" (Includes Internal D2 Door to 10'×7' Attached Toilet)",
+        eye: [13.5, 17.2, 33.2], floorY: 12.3, lookAngle: 1.35
+      },
+      {
+        id: 18,
+        name: '19. East Bedroom Attached Toilet (10\'-0" × 7\'-0")',
+        dims: "Blueprint Size: 10'-0\" × 7'-0\" En-Suite Toilet (Located Behind Store Room, Entered from East Bed)",
+        eye: [5.5, 17.2, 41.0], floorY: 12.3, lookAngle: 2.8
+      },
+      {
+        id: 19,
+        name: '20. First Floor Store Room (10\'-0" × 7\'-0")',
+        dims: "Blueprint Size: 10'-0\" × 7'-0\" Store Room (Entered via D3 from Corridor)",
+        eye: [5.5, 17.2, 33.0], floorY: 12.3, lookAngle: 2.5
+      },
+      {
+        id: 20,
+        name: '21. First Floor West Master Bedroom (15\'-0" × 14\'-0")',
+        dims: "Blueprint Size: 15'-0\" × 14'-0\" (Entered via Single D3 Door + Internal SD to Walk-In Wardrobe)",
+        eye: [-11.5, 17.2, 33.2], floorY: 12.3, lookAngle: 2.1
+      },
+      {
+        id: 21,
+        name: '22. First Floor West Green Terrace Garden',
+        dims: "Blueprint Size: 12'-0\" × 23'-7½\" Open Landscaped Terrace Above Ground Floor Kitchen",
+        eye: [-15.5, 17.2, 22.0], floorY: 12.45, lookAngle: -1.7
+      },
+      {
+        id: 22,
+        name: '23. Inside 4\'-6" Circular Glass Lift Cabin',
+        dims: "Rides Vertically Between Ground Floor (0') and First Floor (+12')",
+        eye: [16.3, 5.2, 28.15], floorY: 0.35, lookAngle: Math.PI, isInsideLift: true
+      }
+    ];
+
+    let currentStationIdx = 0;
+    let is360Mode = false;
+    const hotspotMeshes = [];
+
+    stations360.forEach((st, idx) => {
+      const hGroup = new THREE.Group();
+      hGroup.position.set(st.eye[0], st.floorY, st.eye[2]);
+
+      const ringGeo = new THREE.RingGeometry(0.8, 1.2, 32);
+      ringGeo.rotateX(-Math.PI / 2);
+      const ringMesh = new THREE.Mesh(ringGeo, MAT.hotspotRing);
+      ringMesh.userData = { stationIndex: idx };
+      hGroup.add(ringMesh);
+      hotspotMeshes.push(ringMesh);
+
+      const discGeo = new THREE.CircleGeometry(0.45, 24);
+      discGeo.rotateX(-Math.PI / 2);
+      const discMesh = new THREE.Mesh(discGeo, MAT.hotspotCenter);
+      discMesh.position.y = 0.02;
+      discMesh.userData = { stationIndex: idx };
+      hGroup.add(discMesh);
+      hotspotMeshes.push(discMesh);
+
+      const pinDiv = document.createElement('div');
+      pinDiv.className = 'hotspot-pin';
+      pinDiv.textContent = st.name.replace(/^\d+\.\s*/, '');
+      pinDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        enter360Station(idx);
+      });
+      const pinLabel = new CSS2DObject(pinDiv);
+      pinLabel.position.set(0, 1.1, 0);
+      hGroup.add(pinLabel);
+      hotspotLabelObjects.push({ obj: pinLabel, el: pinDiv });
+
+      groups.hotspots.add(hGroup);
+    });
+
+    // --- 14. UNIFIED TICK / UNTICK FUNCTION FOR BLUE CIRCLES & TEXT ---
+    const chkHotspots = document.getElementById('chk-hotspots');
+    const btnToggleCirclesDock = document.getElementById('btn-toggle-circles-dock');
+
+    function setBlueCirclesAndTextVisible(visible) {
+      chkHotspots.checked = visible;
+      groups.hotspots.visible = visible;
+      hotspotLabelObjects.forEach(item => {
+        item.obj.visible = visible;
+        item.el.style.display = visible ? 'flex' : 'none';
+      });
+      btnToggleCirclesDock.textContent = visible
+        ? '🔵 Hide Blue Circles & Text'
+        : '⚪ Show Blue Circles & Text';
+    }
+
+    chkHotspots.addEventListener('change', (e) => {
+      setBlueCirclesAndTextVisible(e.target.checked);
+    });
+
+    btnToggleCirclesDock.addEventListener('click', () => {
+      setBlueCirclesAndTextVisible(!chkHotspots.checked);
+    });
+
+    // Green Blueprint Dimension Tapes Toggle
+    const chkDims = document.getElementById('chk-dims');
+    chkDims.addEventListener('change', (e) => {
+      const v = e.target.checked;
+      groups.dims.visible = v;
+      dimLabelObjects.forEach(item => {
+        item.obj.visible = v;
+        item.el.style.display = v ? 'block' : 'none';
+      });
+    });
+
+    // --- 15. INTERACTIVE ELEVATOR CABIN ANIMATION ---
+    let liftState = { currentY: 12.0, targetY: 12.0, doorsOpen: true, doorAngle: 0.52 };
+    const rideDockBtn = document.getElementById('btn-ride-dock');
+
+    function triggerLiftRide(destY) {
+      liftState.targetY = destY;
+    }
+
+    rideDockBtn.onclick = () => {
+      enter360Station(22);
+      triggerLiftRide(liftState.targetY < 6 ? 12.0 : 0.0);
+    };
+
+    document.getElementById('btn-step-balcony').onclick = () => {
+      enter360Station(currentStationIdx === 16 ? 15 : 16);
+    };
+
+    let camAnim = null;
+    const activeRoomTitle = document.getElementById('active-room-title');
+    const activeRoomDims = document.getElementById('active-room-dims');
+
+    function enter360Station(idx) {
+      is360Mode = true;
+      currentStationIdx = (idx + stations360.length) % stations360.length;
+      const st = stations360[currentStationIdx];
+
+      groups.roof.visible = true;
+      groups.ff.visible = true;
+      groups.gf.visible = true;
+      document.getElementById('chk-roof').checked = true;
+      document.getElementById('chk-ff').checked = true;
+
+      camera.fov = 80;
+      camera.updateProjectionMatrix();
+
+      document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.querySelector(`[data-station="${currentStationIdx}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      activeRoomTitle.textContent = st.name;
+      activeRoomDims.textContent = st.dims;
+
+      const eyeY = st.isInsideLift ? (5.2 + liftState.currentY) : st.eye[1];
+      const r = 0.01;
+      const endPos = new THREE.Vector3(st.eye[0], eyeY, st.eye[2]);
+      const endTarget = new THREE.Vector3(
+        st.eye[0] + Math.cos(st.lookAngle) * r,
+        eyeY - 0.0008,
+        st.eye[2] + Math.sin(st.lookAngle) * r
+      );
+
+      controls.enableZoom = false;
+      controls.enablePan = false;
+
+      camAnim = {
+        startPos: camera.position.clone(),
+        startTarget: controls.target.clone(),
+        endPos,
+        endTarget,
+        t: 0
+      };
+    }
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    let pointerDownPos = { x: 0, y: 0 };
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+    });
+
+    renderer.domElement.addEventListener('pointerup', (e) => {
+      if (!chkHotspots.checked) return;
+      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      if (dist > 6) return;
+
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObjects(hotspotMeshes, false);
+      if (hits.length > 0 && hits[0].object.userData.stationIndex !== undefined) {
+        enter360Station(hits[0].object.userData.stationIndex);
+      }
+    });
+
+    window.addEventListener('wheel', (e) => {
+      if (!is360Mode) return;
+      camera.fov = THREE.MathUtils.clamp(camera.fov + e.deltaY * 0.03, 35, 95);
+      camera.updateProjectionMatrix();
+    }, { passive: true });
+
+    document.querySelectorAll('[data-station]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        enter360Station(parseInt(btn.dataset.station, 10));
+      });
+    });
+
+    document.getElementById('btn-prev-room').onclick = () => enter360Station(currentStationIdx - 1);
+    document.getElementById('btn-next-room').onclick = () => enter360Station(currentStationIdx + 1);
+
+    const autoBtn = document.getElementById('btn-autorotate');
+    autoBtn.onclick = () => {
+      controls.autoRotate = !controls.autoRotate;
+      autoBtn.classList.toggle('active', controls.autoRotate);
+    };
+
+    const keys = {};
+    window.addEventListener('keydown', (e) => { keys[e.code] = true; });
+    window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+    function updateKeyboardWalk() {
+      if (!is360Mode) return;
+      const speed = 0.22;
+      const forward = new THREE.Vector3();
+      camera.getWorldDirection(forward);
+      forward.y = 0;
+      forward.normalize();
+      const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+      const move = new THREE.Vector3();
+
+      if (keys['KeyW'] || keys['ArrowUp']) move.addScaledVector(forward, speed);
+      if (keys['KeyS'] || keys['ArrowDown']) move.addScaledVector(forward, -speed);
+      if (keys['KeyD'] || keys['ArrowRight']) move.addScaledVector(right, speed);
+      if (keys['KeyA'] || keys['ArrowLeft']) move.addScaledVector(right, -speed);
+
+      if (move.lengthSq() > 0) {
+        camAnim = null;
+        camera.position.add(move);
+        controls.target.add(move);
+      }
+    }
+
+    // Blueprint Plan Verification Presets
+    const extPresets = {
+      dollhouse_gf: {
+        name: 'Ground Floor 3D Dollhouse Cutaway',
+        dims: 'Shared 4\'×11\' Toilet + Detailed Island Kitchen + Unobstructed Powder Room & Stairs',
+        pos: [28, 58, 48], target: [0, 2, 24], roof: false, ff: false
+      },
+      dollhouse_ff: {
+        name: 'First Floor 3D Dollhouse Cutaway',
+        dims: '3D Angled View of All First Floor Rooms, Connecting Bridge, Lounge & East Balcony',
+        pos: [28, 65, 48], target: [0, 12, 24], roof: false, ff: true
+      },
+      shared_toilet_cut: {
+        name: '3D Cutaway: Shared 4\'×11\' Toilet Between Guest Bed (8\'×14\') & Middle Bed (10\'×14\')',
+        dims: 'Dual D2 Doors Connect Both Ground Floor Bedrooms to the Shared 4\'-0" × 11\'-0" Bathroom!',
+        pos: [12, 30, 20], target: [12, 2, 34], roof: false, ff: false
+      },
+      kitchen_cut: {
+        name: '3D Cutaway: Detailed Island Dining, Kitchen (12\'×12\') & Unobstructed Hallway',
+        dims: '6\'-0" Clear Hallway Past Staircase + Waterfall Island + 4-Burner Hob & Chimney + Double Sink!',
+        pos: [-4, 28, 35], target: [-16, 3, 18], roof: false, ff: false
+      },
+      gf_plan_top: {
+        name: 'Ground Floor Plan Verification (Top-Down Cutaway)',
+        dims: 'Compare Directly to g.f plan.pdf: Shared 4\'×11\' Toilet, Guest Bed, Middle Bed, Master Bed & Island Kitchen',
+        pos: [2, 88, 25], target: [0, 0, 25], roof: false, ff: false
+      },
+      ff_plan_top: {
+        name: 'First Floor Plan Verification (Top-Down Cutaway)',
+        dims: 'Compare Directly to f.fplan.pdf: All 9 Zones, Connecting Passage & Flush Windows Match 100%',
+        pos: [2, 88, 25], target: [0, 12, 25], roof: false, ff: true
+      },
+      front: {
+        name: 'Exterior: East Front Elevation',
+        dims: 'Twin Symmetrical Classical Blocks + 12\'-0" Central Passage',
+        pos: [110, 16, 0], target: [0, 12, 0], roof: true, ff: true
+      }
+    };
+
+    function activateExtPreset(key) {
+      is360Mode = false;
+      controls.enableZoom = true;
+      controls.enablePan = true;
+      camera.fov = 48;
+      camera.updateProjectionMatrix();
+
+      document.querySelectorAll('.ctrl-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`[data-ext="${key}"]`);
+      if (btn) btn.classList.add('active');
+
+      const p = extPresets[key];
+      groups.roof.visible = p.roof;
+      groups.ff.visible = p.ff;
+      document.getElementById('chk-roof').checked = p.roof;
+      document.getElementById('chk-ff').checked = p.ff;
+      activeRoomTitle.textContent = p.name;
+      activeRoomDims.textContent = p.dims;
+
+      camAnim = {
+        startPos: camera.position.clone(),
+        startTarget: controls.target.clone(),
+        endPos: new THREE.Vector3(...p.pos),
+        endTarget: new THREE.Vector3(...p.target),
+        t: 0
+      };
+    }
+
+    document.querySelectorAll('[data-ext]').forEach(btn => {
+      btn.addEventListener('click', () => activateExtPreset(btn.dataset.ext));
+    });
+
+    document.getElementById('chk-furniture').onchange = (e) => { groups.furniture.visible = e.target.checked; };
+    document.getElementById('chk-roof').onchange = (e) => { groups.roof.visible = e.target.checked; };
+    document.getElementById('chk-ff').onchange = (e) => { groups.ff.visible = e.target.checked; };
+
+    document.getElementById('btn-day').onclick = () => {
+      document.getElementById('btn-day').classList.add('active');
+      document.getElementById('btn-night').classList.remove('active');
+      scene.background.setHex(0xdbeafe);
+      scene.fog.color.setHex(0xdbeafe);
+      hemiLight.intensity = 1.2;
+      dirLight.intensity = 1.55;
+      warmLightsGroup.children.forEach(l => (l.intensity = 0));
+      interiorLightsGroup.children.forEach(l => (l.intensity = 1.4));
+    };
+
+    document.getElementById('btn-night').onclick = () => {
+      document.getElementById('btn-night').classList.add('active');
+      document.getElementById('btn-day').classList.remove('active');
+      scene.background.setHex(0x0b1120);
+      scene.fog.color.setHex(0x0b1120);
+      hemiLight.intensity = 0.35;
+      dirLight.intensity = 0.2;
+      warmLightsGroup.children.forEach(l => (l.intensity = 2.2));
+      interiorLightsGroup.children.forEach(l => (l.intensity = 2.2));
+    };
+
+    const compassEl = document.getElementById('compass-readout');
+    const lookDir = new THREE.Vector3();
+    function updateCompass() {
+      camera.getWorldDirection(lookDir);
+      let deg = Math.round((Math.atan2(lookDir.x, -lookDir.z) * 180) / Math.PI);
+      if (deg < 0) deg += 360;
+      const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+      const cardinal = dirs[Math.round(deg / 45) % 8];
+      compassEl.textContent = `Heading: ${deg}° (${cardinal})`;
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Launch in Ground Floor 3D Dollhouse Cutaway
+    activateExtPreset('dollhouse_gf');
+
+    let clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      const pulse = 1 + Math.sin(elapsed * 3.5) * 0.08;
+      groups.hotspots.children.forEach(h => {
+        if (h.children[0]) h.children[0].scale.set(pulse, pulse, 1);
+      });
+
+      const dy = liftState.targetY - liftState.currentY;
+      const isMoving = Math.abs(dy) > 0.04;
+      if (isMoving) {
+        const step = Math.sign(dy) * Math.min(Math.abs(dy), 0.11);
+        liftState.currentY += step;
+        if (is360Mode && currentStationIdx === 22 && !camAnim) {
+          camera.position.y += step;
+          controls.target.y += step;
+        }
+      }
+
+      const targetDoorAngle = (!isMoving && liftState.doorsOpen) ? 0.52 : 0.0;
+      liftState.doorAngle += (targetDoorAngle - liftState.doorAngle) * 0.12;
+
+      liftControllers.forEach(ctrl => {
+        ctrl.cabinGroup.position.y = liftState.currentY;
+        ctrl.counterweight.position.y = 16.0 - liftState.currentY * 0.85;
+        ctrl.leftDoor.rotation.y = -liftState.doorAngle;
+        ctrl.rightDoor.rotation.y = liftState.doorAngle;
+      });
+
+      if (camAnim) {
+        camAnim.t += 0.06;
+        const alpha = 1 - Math.pow(1 - Math.min(camAnim.t, 1), 3);
+        camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, alpha);
+        controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, alpha);
+        if (camAnim.t >= 1) camAnim = null;
+      }
+
+      updateKeyboardWalk();
+      controls.update();
+      updateCompass();
+      renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
